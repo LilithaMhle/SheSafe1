@@ -1,0 +1,258 @@
+<ion-content [fullscreen]="true" class="signup-content">
+
+  <!-- Ambient background orbs -->
+  <div class="orb orb-top"></div>
+  <div class="orb orb-bottom"></div>
+
+  <!-- Floating particles -->
+  <div class="particle particle-1"></div>
+  <div class="particle particle-2"></div>
+
+  <!-- Scrollable wrapper -->
+  <div class="signup-wrapper">
+
+    <!-- Logo + heading -->
+    <div class="auth-header">
+      <div class="logo-badge">
+        <img
+          src="https://scontent.fdur5-1.fna.fbcdn.net/v/t39.30808-1/647141569_924108493431298_6230151781270152750_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=105&ccb=1-7&_nc_sid=e99d92&_nc_ohc=TGuYnSZKHA8Q7kNvwGqXqyk&_nc_oc=AdnLrWjs6SLszIs6w1enAPqX-PM6E6ozDi7uc_VaNernzTJem2lcvxGIYwctvkzyTIU&_nc_zt=24&_nc_ht=scontent.fdur5-1.fna&_nc_gid=8s1wOobL4jOlaHNNDiNZ8g&_nc_ss=8&oh=00_AfwZJGU4_dou25xqzekZjaXurANTZ7X1d_Vm3LJAbeQYUg&oe=69B11D46"
+          alt="SheSafe Logo"
+        />
+      </div>
+      <h1 class="auth-title">Create account</h1>
+      <p class="auth-sub">Join thousands of empowered women</p>
+    </div>
+
+    <!-- Form -->
+    <div class="form-stack">
+
+      <!-- First name + Last name (side by side) -->
+      <div class="name-row">
+
+        <div class="field">
+          <label class="field-lbl">First name</label>
+          <div class="input-glass" [class.input-focus]="firstNameFocused">
+            <ion-icon name="person-outline" class="input-icon"></ion-icon>
+            <ion-input
+              type="text"
+              placeholder="Nomsa"
+              [(ngModel)]="firstName"
+              (ionFocus)="firstNameFocused = true"
+              (ionBlur)="firstNameFocused = false"
+            ></ion-input>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-lbl">Last name</label>
+          <div class="input-glass" [class.input-focus]="lastNameFocused">
+            <ion-input
+              type="text"
+              placeholder="Dlamini"
+              [(ngModel)]="lastName"
+              (ionFocus)="lastNameFocused = true"
+              (ionBlur)="lastNameFocused = false"
+            ></ion-input>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Email -->
+      <div class="field">
+        <label class="field-lbl">Email address</label>
+        <div class="input-glass"
+          [class.input-focus]="emailFocused"
+          [class.input-error]="emailTouched && email.length > 0 && !isValidEmail(email)">
+          <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+          <ion-input
+            type="email"
+            placeholder="you@example.ac.za"
+            [(ngModel)]="email"
+            (ionInput)="onEmailInput()"
+            (ionFocus)="emailFocused = true"
+            (ionBlur)="emailFocused = false; emailTouched = true"
+          ></ion-input>
+          <ion-icon
+            name="checkmark-circle"
+            class="valid-icon"
+            *ngIf="email.length > 0 && isValidEmail(email)"
+          ></ion-icon>
+          <ion-icon
+            name="close-circle"
+            class="error-icon"
+            *ngIf="email.length > 0 && !isValidEmail(email)"
+          ></ion-icon>
+        </div>
+        <span class="field-error"
+          *ngIf="emailTouched && email.length > 0 && !isValidEmail(email)">
+          ⚠ Please enter a valid email (e.g. name@gmail.com)
+        </span>
+      </div>
+
+      <!-- Password -->
+      <div class="field">
+        <label class="field-lbl">Password</label>
+        <div class="input-glass" [class.input-focus]="passwordFocused">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <ion-input
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="Create a strong password"
+            [(ngModel)]="password"
+            (ionInput)="onPasswordInput()"
+            (ionFocus)="passwordFocused = true"
+            (ionBlur)="passwordFocused = false"
+          ></ion-input>
+          <ion-icon
+            [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+            class="eye-icon"
+            (click)="showPassword = !showPassword"
+          ></ion-icon>
+        </div>
+
+        <!-- Strength bar -->
+        <div class="strength-row" *ngIf="password.length > 0">
+          <div class="strength-bars">
+            <div class="strength-bar"
+              [class.active]="strengthScore >= 1"
+              [class.weak]="strengthScore === 1"
+              [class.fair]="strengthScore === 2"
+              [class.good]="strengthScore === 3"
+              [class.strong]="strengthScore === 4">
+            </div>
+            <div class="strength-bar"
+              [class.active]="strengthScore >= 2"
+              [class.fair]="strengthScore === 2"
+              [class.good]="strengthScore === 3"
+              [class.strong]="strengthScore === 4">
+            </div>
+            <div class="strength-bar"
+              [class.active]="strengthScore >= 3"
+              [class.good]="strengthScore === 3"
+              [class.strong]="strengthScore === 4">
+            </div>
+            <div class="strength-bar"
+              [class.active]="strengthScore >= 4"
+              [class.strong]="strengthScore === 4">
+            </div>
+          </div>
+          <span class="strength-label"
+            [class.weak]="strengthScore === 1"
+            [class.fair]="strengthScore === 2"
+            [class.good]="strengthScore === 3"
+            [class.strong]="strengthScore === 4">
+            {{ strengthLabel }}
+          </span>
+        </div>
+
+        <!-- Rules checklist -->
+        <div class="rules-list" *ngIf="password.length > 0">
+          <div class="rule" [class.met]="rules.minLength">
+            <ion-icon [name]="rules.minLength ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>At least 8 characters</span>
+          </div>
+          <div class="rule" [class.met]="rules.hasUpper">
+            <ion-icon [name]="rules.hasUpper ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>One uppercase letter (A–Z)</span>
+          </div>
+          <div class="rule" [class.met]="rules.hasNumber">
+            <ion-icon [name]="rules.hasNumber ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>One number (0–9)</span>
+          </div>
+          <div class="rule" [class.met]="rules.hasSpecial">
+            <ion-icon [name]="rules.hasSpecial ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>One special character (!@#$...)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirm password -->
+      <div class="field">
+        <label class="field-lbl">Confirm password</label>
+        <div class="input-glass"
+          [class.input-focus]="confirmFocused"
+          [class.input-error]="confirmPassword.length > 0 && password !== confirmPassword">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <ion-input
+            [type]="showConfirm ? 'text' : 'password'"
+            placeholder="Repeat your password"
+            [(ngModel)]="confirmPassword"
+            (ionFocus)="confirmFocused = true"
+            (ionBlur)="confirmFocused = false"
+          ></ion-input>
+          <ion-icon
+            [name]="showConfirm ? 'eye-off-outline' : 'eye-outline'"
+            class="eye-icon"
+            (click)="showConfirm = !showConfirm"
+          ></ion-icon>
+        </div>
+        <span class="match-error"
+          *ngIf="confirmPassword.length > 0 && password !== confirmPassword">
+          ⚠ Passwords do not match
+        </span>
+        <span class="match-ok"
+          *ngIf="confirmPassword.length > 0 && password === confirmPassword">
+          ✓ Passwords match
+        </span>
+      </div>
+
+      <!-- Terms note -->
+      <p class="terms-note">
+        By signing up you agree to our
+        <span class="terms-link">Terms of Service</span>
+        and
+        <span class="terms-link">Privacy Policy</span>
+      </p>
+
+      <!-- Create Account button -->
+      <div
+        class="btn-cta"
+        [class.btn-disabled]="!isFormValid()"
+        (click)="onSignUp()">
+        <span *ngIf="!loading">Create My Account</span>
+        <ion-spinner *ngIf="loading" name="crescent" color="light"></ion-spinner>
+      </div>
+
+      <!-- Already have account -->
+      <div class="bottom-nudge">
+        Already have an account?&nbsp;
+        <strong (click)="goToLogin()">Log In →</strong>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       SUCCESS CONFIRMATION SCREEN
+  ══════════════════════════════════════════════════════════ -->
+  <div class="modal-backdrop" *ngIf="signUpSuccess"></div>
+
+  <div class="modal-sheet success-sheet" *ngIf="signUpSuccess">
+    <div class="modal-handle"></div>
+
+    <div class="success-body">
+
+      <!-- Animated tick -->
+      <div class="success-ring">
+        <div class="success-circle">
+          <ion-icon name="checkmark-outline" class="success-tick"></ion-icon>
+        </div>
+      </div>
+
+      <h2 class="success-title">Account Created!</h2>
+      <p class="success-msg">
+        Welcome to SheSafe, {{ firstName }}! 🌸<br>
+        Your account has been successfully created.<br>
+        Please log in to continue.
+      </p>
+
+      <!-- Go to login -->
+      <div class="btn-cta" (click)="goToLogin()">
+        Go to Login
+      </div>
+
+    </div>
+  </div>
+
+</ion-content>

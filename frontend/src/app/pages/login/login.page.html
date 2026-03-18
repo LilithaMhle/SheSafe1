@@ -1,0 +1,295 @@
+<ion-content [fullscreen]="true" class="login-content">
+
+  <!-- Ambient background orbs -->
+  <div class="orb orb-top"></div>
+  <div class="orb orb-bottom"></div>
+
+  <!-- Floating particles -->
+  <div class="particle particle-1"></div>
+  <div class="particle particle-2"></div>
+
+  <!-- Main wrapper -->
+  <div class="login-wrapper">
+
+    <!-- Logo + heading -->
+    <div class="auth-header">
+      <div class="logo-badge">
+        <img
+          src="https://scontent.fdur5-1.fna.fbcdn.net/v/t39.30808-1/647141569_924108493431298_6230151781270152750_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=105&ccb=1-7&_nc_sid=e99d92&_nc_ohc=TGuYnSZKHA8Q7kNvwGqXqyk&_nc_oc=AdnLrWjs6SLszIs6w1enAPqX-PM6E6ozDi7uc_VaNernzTJem2lcvxGIYwctvkzyTIU&_nc_zt=24&_nc_ht=scontent.fdur5-1.fna&_nc_gid=8s1wOobL4jOlaHNNDiNZ8g&_nc_ss=8&oh=00_AfwZJGU4_dou25xqzekZjaXurANTZ7X1d_Vm3LJAbeQYUg&oe=69B11D46"
+          alt="SheSafe Logo"
+        />
+      </div>
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-sub">Sign in to your SheSafe account</p>
+    </div>
+
+    <!-- Form -->
+    <div class="form-stack">
+
+      <!-- Email -->
+      <div class="field">
+        <label class="field-lbl">Email address</label>
+        <div class="input-glass" [class.input-focus]="emailFocused">
+          <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+          <ion-input
+            type="email"
+            placeholder="student@example.ac.za"
+            [(ngModel)]="email"
+            (ionFocus)="emailFocused = true"
+            (ionBlur)="emailFocused = false"
+          ></ion-input>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="field">
+        <label class="field-lbl">Password</label>
+        <div class="input-glass" [class.input-focus]="passwordFocused">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <ion-input
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="••••••••••"
+            [(ngModel)]="password"
+            (ionInput)="onPasswordInput()"
+            (ionFocus)="passwordFocused = true"
+            (ionBlur)="passwordFocused = false"
+          ></ion-input>
+          <ion-icon
+            [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+            class="eye-icon"
+            (click)="togglePassword()"
+          ></ion-icon>
+        </div>
+
+        <!-- Password strength bar -->
+        <div class="strength-row" *ngIf="password.length > 0">
+          <div class="strength-bars">
+            <div class="strength-bar" [class.active]="strengthScore >= 1" [class.weak]="strengthScore === 1" [class.fair]="strengthScore === 2" [class.good]="strengthScore === 3" [class.strong]="strengthScore === 4"></div>
+            <div class="strength-bar" [class.active]="strengthScore >= 2" [class.fair]="strengthScore === 2" [class.good]="strengthScore === 3" [class.strong]="strengthScore === 4"></div>
+            <div class="strength-bar" [class.active]="strengthScore >= 3" [class.good]="strengthScore === 3" [class.strong]="strengthScore === 4"></div>
+            <div class="strength-bar" [class.active]="strengthScore >= 4" [class.strong]="strengthScore === 4"></div>
+          </div>
+          <span class="strength-label" [class.weak]="strengthScore === 1" [class.fair]="strengthScore === 2" [class.good]="strengthScore === 3" [class.strong]="strengthScore === 4">
+            {{ strengthLabel }}
+          </span>
+        </div>
+
+        <!-- Password rules checklist -->
+        <div class="rules-list" *ngIf="password.length > 0">
+          <div class="rule" [class.met]="rules.minLength">
+            <ion-icon [name]="rules.minLength ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>At least 8 characters</span>
+          </div>
+          <div class="rule" [class.met]="rules.hasUpper">
+            <ion-icon [name]="rules.hasUpper ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>One uppercase letter (A–Z)</span>
+          </div>
+          <div class="rule" [class.met]="rules.hasNumber">
+            <ion-icon [name]="rules.hasNumber ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>One number (0–9)</span>
+          </div>
+          <div class="rule" [class.met]="rules.hasSpecial">
+            <ion-icon [name]="rules.hasSpecial ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>One special character (!@#$...)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forgot password -->
+      <div class="forgot-row">
+        <span class="forgot-link" (click)="openForgotModal()">Forgot password?</span>
+      </div>
+
+      <!-- Sign In button -->
+      <div class="btn-cta" [class.btn-disabled]="!isFormValid()" (click)="onLogin()">
+        <span *ngIf="!loading">Login</span>
+        <ion-spinner *ngIf="loading" name="crescent" color="light"></ion-spinner>
+      </div>
+
+      <!-- Sign up nudge -->
+      <div class="bottom-nudge">
+        Don't have an account?&nbsp;
+        <strong (click)="goToSignUp()">Sign Up →</strong>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       FORGOT PASSWORD MODAL
+  ══════════════════════════════════════════════════════════ -->
+  <div class="modal-backdrop" *ngIf="showForgotModal" (click)="closeForgotModal()"></div>
+
+  <div class="modal-sheet" *ngIf="showForgotModal && !resetSuccess">
+
+    <div class="modal-handle"></div>
+
+    <div class="modal-header">
+      <div class="modal-icon">🔑</div>
+      <h2 class="modal-title">Reset Password</h2>
+      <p class="modal-sub">Enter your email, then create a new password below.</p>
+    </div>
+
+    <div class="modal-form">
+
+      <!-- Reset email with live validation -->
+      <div class="field">
+        <label class="field-lbl">Email address</label>
+        <div class="input-glass"
+          [class.input-focus]="resetEmailFocused"
+          [class.input-error]="resetEmail.length > 0 && !isValidEmail(resetEmail)">
+          <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+          <ion-input
+            type="email"
+            placeholder="student@example.ac.za"
+            [(ngModel)]="resetEmail"
+            (ionInput)="onResetEmailInput()"
+            (ionFocus)="resetEmailFocused = true"
+            (ionBlur)="resetEmailFocused = false; resetEmailTouched = true"
+          ></ion-input>
+          <!-- tick when valid -->
+          <ion-icon
+            name="checkmark-circle"
+            class="valid-icon"
+            *ngIf="resetEmail.length > 0 && isValidEmail(resetEmail)"
+          ></ion-icon>
+          <!-- cross when invalid -->
+          <ion-icon
+            name="close-circle"
+            class="error-icon"
+            *ngIf="resetEmail.length > 0 && !isValidEmail(resetEmail)"
+          ></ion-icon>
+        </div>
+        <!-- Inline error message -->
+        <span class="field-error" *ngIf="resetEmailTouched && resetEmail.length > 0 && !isValidEmail(resetEmail)">
+          ⚠ Please enter a valid email (e.g. name@gmail.com)
+        </span>
+      </div>
+
+      <!-- New password -->
+      <div class="field">
+        <label class="field-lbl">New password</label>
+        <div class="input-glass" [class.input-focus]="newPasswordFocused">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <ion-input
+            [type]="showNewPassword ? 'text' : 'password'"
+            placeholder="Create new password"
+            [(ngModel)]="newPassword"
+            (ionInput)="onNewPasswordInput()"
+            (ionFocus)="newPasswordFocused = true"
+            (ionBlur)="newPasswordFocused = false"
+          ></ion-input>
+          <ion-icon
+            [name]="showNewPassword ? 'eye-off-outline' : 'eye-outline'"
+            class="eye-icon"
+            (click)="showNewPassword = !showNewPassword"
+          ></ion-icon>
+        </div>
+
+        <!-- Strength bar -->
+        <div class="strength-row" *ngIf="newPassword.length > 0">
+          <div class="strength-bars">
+            <div class="strength-bar" [class.active]="newStrengthScore >= 1" [class.weak]="newStrengthScore === 1" [class.fair]="newStrengthScore === 2" [class.good]="newStrengthScore === 3" [class.strong]="newStrengthScore === 4"></div>
+            <div class="strength-bar" [class.active]="newStrengthScore >= 2" [class.fair]="newStrengthScore === 2" [class.good]="newStrengthScore === 3" [class.strong]="newStrengthScore === 4"></div>
+            <div class="strength-bar" [class.active]="newStrengthScore >= 3" [class.good]="newStrengthScore === 3" [class.strong]="newStrengthScore === 4"></div>
+            <div class="strength-bar" [class.active]="newStrengthScore >= 4" [class.strong]="newStrengthScore === 4"></div>
+          </div>
+          <span class="strength-label" [class.weak]="newStrengthScore === 1" [class.fair]="newStrengthScore === 2" [class.good]="newStrengthScore === 3" [class.strong]="newStrengthScore === 4">
+            {{ newStrengthLabel }}
+          </span>
+        </div>
+
+        <!-- Rules -->
+        <div class="rules-list" *ngIf="newPassword.length > 0">
+          <div class="rule" [class.met]="newRules.minLength">
+            <ion-icon [name]="newRules.minLength ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>At least 8 characters</span>
+          </div>
+          <div class="rule" [class.met]="newRules.hasUpper">
+            <ion-icon [name]="newRules.hasUpper ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>One uppercase letter (A–Z)</span>
+          </div>
+          <div class="rule" [class.met]="newRules.hasNumber">
+            <ion-icon [name]="newRules.hasNumber ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>One number (0–9)</span>
+          </div>
+          <div class="rule" [class.met]="newRules.hasSpecial">
+            <ion-icon [name]="newRules.hasSpecial ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+            <span>One special character (!@#$...)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirm new password -->
+      <div class="field">
+        <label class="field-lbl">Confirm new password</label>
+        <div class="input-glass"
+          [class.input-focus]="confirmPasswordFocused"
+          [class.input-error]="confirmPassword.length > 0 && newPassword !== confirmPassword">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <ion-input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            placeholder="Repeat new password"
+            [(ngModel)]="confirmPassword"
+            (ionFocus)="confirmPasswordFocused = true"
+            (ionBlur)="confirmPasswordFocused = false"
+          ></ion-input>
+          <ion-icon
+            [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"
+            class="eye-icon"
+            (click)="showConfirmPassword = !showConfirmPassword"
+          ></ion-icon>
+        </div>
+        <span class="match-error" *ngIf="confirmPassword.length > 0 && newPassword !== confirmPassword">
+          ⚠ Passwords do not match
+        </span>
+        <span class="match-ok" *ngIf="confirmPassword.length > 0 && newPassword === confirmPassword">
+          ✓ Passwords match
+        </span>
+      </div>
+
+      <!-- Submit -->
+      <div class="btn-cta" [class.btn-disabled]="!isResetValid()" (click)="onResetPassword()">
+        <span *ngIf="!resetLoading">Reset Password</span>
+        <ion-spinner *ngIf="resetLoading" name="crescent" color="light"></ion-spinner>
+      </div>
+
+      <div class="modal-cancel" (click)="closeForgotModal()">Cancel</div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       SUCCESS CONFIRMATION SCREEN (replaces modal content)
+  ══════════════════════════════════════════════════════════ -->
+  <div class="modal-backdrop" *ngIf="resetSuccess"></div>
+
+  <div class="modal-sheet success-sheet" *ngIf="resetSuccess">
+    <div class="modal-handle"></div>
+
+    <div class="success-body">
+
+      <!-- Animated tick -->
+      <div class="success-ring">
+        <div class="success-circle">
+          <ion-icon name="checkmark-outline" class="success-tick"></ion-icon>
+        </div>
+      </div>
+
+      <h2 class="success-title">Password Reset!</h2>
+      <p class="success-msg">
+        Your password has been successfully updated.<br>
+        You can now sign in with your new password.
+      </p>
+
+      <!-- Back to login -->
+      <div class="btn-cta" (click)="backToLogin()">
+        Back to Login
+      </div>
+
+    </div>
+  </div>
+
+</ion-content>

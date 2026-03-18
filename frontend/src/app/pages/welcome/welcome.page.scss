@@ -1,0 +1,209 @@
+// ─── Color Variables ──────────────────────────────────────────
+$rose:         #C97B8A;
+$rose-light:   #E8A5B0;
+$rose-deep:    #A85C6E;
+$night:        #110508;
+$glass-bg:     rgba(255, 255, 255, 0.10);
+$glass-border: rgba(255, 255, 255, 0.24);
+
+// ─── Host ─────────────────────────────────────────────────────
+:host {
+  display: block;
+}
+
+// ─── Page background ──────────────────────────────────────────
+.splash-content {
+  --background: #{$night};
+  --color: #ffffff;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 120% 90% at 20% -5%,  rgba(200, 110, 135, 0.45) 0%, transparent 55%),
+      radial-gradient(ellipse 80%  70% at 80%  105%, rgba(140,  50,  80, 0.38) 0%, transparent 50%),
+      linear-gradient(170deg, #280c14 0%, #180810 45%, #0d0409 100%);
+    pointer-events: none;
+  }
+}
+
+// ─── Glowing ambient orbs ─────────────────────────────────────
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(48px);
+  pointer-events: none;
+  z-index: 1;
+  animation: float-orb 7s ease-in-out infinite;
+}
+
+.orb-top {
+  width: 280px;
+  height: 280px;
+  top: -80px;
+  left: -70px;
+  background: rgba(200, 100, 130, 0.22);
+}
+
+.orb-bottom {
+  width: 220px;
+  height: 220px;
+  bottom: -60px;
+  right: -60px;
+  background: rgba(150, 50, 80, 0.20);
+  animation-delay: 3s;
+}
+
+@keyframes float-orb {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-20px) scale(1.05); }
+}
+
+// ─── Floating particles ───────────────────────────────────────
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(232, 165, 176, 0.13);
+  pointer-events: none;
+  z-index: 1;
+  animation: float-particle 6s ease-in-out infinite;
+}
+
+.particle-1 {
+  width: 100px;
+  height: 100px;
+  top: 15%;
+  right: 8%;
+  animation-delay: 0s;
+}
+
+.particle-2 {
+  width: 60px;
+  height: 60px;
+  bottom: 25%;
+  left: 6%;
+  animation-delay: 2s;
+}
+
+.particle-3 {
+  width: 40px;
+  height: 40px;
+  top: 40%;
+  left: 12%;
+  animation-delay: 4s;
+}
+
+@keyframes float-particle {
+  0%, 100% { transform: translateY(0) scale(1);     opacity: 0.3; }
+  50%       { transform: translateY(-16px) scale(1.1); opacity: 0.6; }
+}
+
+// ─── Centre wrapper ───────────────────────────────────────────
+.splash-center {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 40px;
+  gap: 16px;
+  animation: fade-up 0.9s ease both;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ─── Logo ring ────────────────────────────────────────────────
+.logo-ring {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: $glass-bg;
+  border: 1.5px solid $glass-border;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+
+  box-shadow:
+    0 0 0 10px rgba(200, 100, 130, 0.07),
+    0 0 0 20px rgba(200, 100, 130, 0.04),
+    0 8px 40px rgba(200, 100, 130, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+
+  animation: pulse-ring 3s ease-in-out infinite;
+
+  img {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+  }
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    box-shadow:
+      0 0 0 10px rgba(200, 100, 130, 0.07),
+      0 0 0 20px rgba(200, 100, 130, 0.04),
+      0 8px 40px rgba(200, 100, 130, 0.30),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+  50% {
+    box-shadow:
+      0 0 0 14px rgba(200, 100, 130, 0.10),
+      0 0 0 28px rgba(200, 100, 130, 0.05),
+      0 8px 55px rgba(200, 100, 130, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+}
+
+// ─── App name ─────────────────────────────────────────────────
+.app-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-shadow: 0 2px 24px rgba(200, 120, 145, 0.50);
+}
+
+// ─── Tagline ──────────────────────────────────────────────────
+.app-tagline {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.80rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(232, 165, 176, 0.80);
+  margin: 0;
+  text-align: center;
+  line-height: 1.6;
+  max-width: 240px;
+}
+
+// ─── Loading bar ──────────────────────────────────────────────
+.loader-track {
+  width: 140px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 28px;
+}
+
+.loader-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $rose-deep, $rose, $rose-light);
+  border-radius: 99px;
+  transition: width 0.12s linear;
+}

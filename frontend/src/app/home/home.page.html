@@ -1,0 +1,291 @@
+<ion-header [translucent]="true" class="she-header">
+  <ion-toolbar>
+    <ion-title class="she-title">
+      <img class="title-logo" src="https://scontent.fdur5-1.fna.fbcdn.net/v/t39.30808-1/647141569_924108493431298_6230151781270152750_n.jpg?stp=dst-jpg_s200x200_tt6&_nc_cat=105&ccb=1-7&_nc_sid=e99d92&_nc_ohc=TGuYnSZKHA8Q7kNvwGqXqyk&_nc_oc=AdnLrWjs6SLszIs6w1enAPqX-PM6E6ozDi7uc_VaNernzTJem2lcvxGIYwctvkzyTIU&_nc_zt=24&_nc_ht=scontent.fdur5-1.fna&_nc_gid=8s1wOobL4jOlaHNNDiNZ8g&_nc_ss=8&oh=00_AfwZJGU4_dou25xqzekZjaXurANTZ7X1d_Vm3LJAbeQYUg&oe=69B11D46" alt="SheSafe" />
+      SheSafe
+    </ion-title>
+    <ion-buttons slot="start">
+      <span class="user-greeting" *ngIf="currentUser">Hi, {{ currentUser.firstName }} 👋</span>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="onLogout()" class="logout-btn" fill="clear">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="showSafetyGuide = true" class="guide-btn" fill="clear">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        Safety Guide
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="she-content">
+
+  <!-- ── Hero Banner ─────────────────────────────────────────────── -->
+  <div class="hero-banner">
+    <div class="hero-text">
+      <h1>Know What You Use</h1>
+      <p>Compare menstrual products by safety score, ingredients & price across South African brands.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-pill">
+        <span class="stat-num">{{ allProducts.length }}</span>
+        <span class="stat-label">Products</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num">3</span>
+        <span class="stat-label">Categories</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Search & Controls ───────────────────────────────────────── -->
+  <div class="controls-section">
+    <ion-searchbar
+      class="she-search"
+      placeholder="Search by name or brand…"
+      (ionInput)="onSearchChange($event)"
+      [value]="searchQuery"
+      debounce="200">
+    </ion-searchbar>
+
+    <div class="category-chips">
+      <button
+        *ngFor="let cat of categories"
+        class="chip"
+        [class.chip-active]="isActiveCat(cat)"
+        (click)="onCategoryChange(cat)">
+        {{ cat }}
+      </button>
+    </div>
+
+    <div class="sort-row">
+      <span class="sort-label">Sort by:</span>
+      <ion-select
+        class="she-select"
+        [value]="sortBy"
+        (ionChange)="onSortChange($event)"
+        interface="popover">
+        <ion-select-option value="safety">Safest First</ion-select-option>
+        <ion-select-option value="risk">Most Risky First</ion-select-option>
+        <ion-select-option value="name">Name A–Z</ion-select-option>
+      </ion-select>
+      <span class="result-count">{{ filteredProducts.length }} result{{ filteredProducts.length !== 1 ? 's' : '' }}</span>
+    </div>
+  </div>
+
+  <!-- ── Loading State ───────────────────────────────────────────── -->
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Loading products…</p>
+  </div>
+
+  <!-- ── Empty State ─────────────────────────────────────────────── -->
+  <div *ngIf="!isLoading && filteredProducts.length === 0" class="empty-state">
+    <span class="empty-icon">🔍</span>
+    <p>No products match your search.</p>
+    <ion-button fill="outline" (click)="searchQuery = ''; selectedCategory = ''; applyFilters()">Clear Filters</ion-button>
+  </div>
+
+  <!-- ── Product Grid ────────────────────────────────────────────── -->
+  <div *ngIf="!isLoading" class="product-grid">
+    <div
+      *ngFor="let product of filteredProducts"
+      class="product-card"
+      (click)="openProduct(product)">
+
+      <!-- Top row: score ring + info -->
+      <div class="card-top-row">
+        <div class="score-ring-wrap">
+          <svg class="score-ring" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="30" class="ring-bg"/>
+            <circle
+              cx="40" cy="40" r="30"
+              class="ring-fill"
+              [style.stroke]="getSafetyColor(product.safety_score)"
+              [style.stroke-dasharray]="188.5"
+              [style.stroke-dashoffset]="188.5 - (product.safety_score / 100 * 188.5)"
+            />
+          </svg>
+          <div class="score-value" [style.color]="getSafetyColor(product.safety_score)">
+            {{ product.safety_score }}
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="card-category">{{ product.category }}</div>
+          <h3 class="card-name">{{ product.name }}</h3>
+          <p class="card-brand">{{ product.brand }}</p>
+          <span class="safety-badge" [ngClass]="getSafetyBadgeClass(product.safety_label)">
+            {{ product.safety_label }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Footer: price + details button -->
+      <div class="card-footer">
+        <span class="price-tag">{{ product.price_range }}</span>
+        <span class="card-details-btn">Details →</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="bottom-spacer"></div>
+
+  <!-- ── Product Detail Modal ────────────────────────────────────── -->
+  <ion-modal [isOpen]="showModal" (didDismiss)="closeModal()" class="product-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-title">Product Details</ion-title>
+          <ion-buttons slot="start">
+      <span class="user-greeting" *ngIf="currentUser">Hi, {{ currentUser.firstName }} 👋</span>
+    </ion-buttons>
+    <ion-buttons slot="end">
+            <ion-button (click)="closeModal()" fill="clear" class="close-btn">✕</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-content" *ngIf="selectedProduct">
+        <!-- Score Hero -->
+        <div class="modal-hero" [style.background]="'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)'">
+          <div class="modal-score-wrap">
+            <svg class="modal-ring" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="48" class="ring-bg-lg"/>
+              <circle
+                cx="60" cy="60" r="48"
+                class="ring-fill-lg"
+                [style.stroke]="getSafetyColor(selectedProduct.safety_score)"
+                [style.stroke-dasharray]="301.6"
+                [style.stroke-dashoffset]="301.6 - (selectedProduct.safety_score / 100 * 301.6)"
+              />
+            </svg>
+            <div class="modal-score-num" [style.color]="getSafetyColor(selectedProduct.safety_score)">
+              {{ selectedProduct.safety_score }}
+            </div>
+            <div class="modal-score-label">/ 100</div>
+          </div>
+          <div class="modal-hero-text">
+            <p class="modal-category">{{ selectedProduct.category }}</p>
+            <h2 class="modal-name">{{ selectedProduct.name }}</h2>
+            <p class="modal-brand">by {{ selectedProduct.brand }}</p>
+            <span class="safety-badge lg" [ngClass]="getSafetyBadgeClass(selectedProduct.safety_label)">
+              {{ selectedProduct.safety_label }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Price -->
+        <div class="detail-section">
+          <div class="detail-row price-row">
+            <ion-icon name="pricetag-outline" class="detail-icon"></ion-icon>
+            <div>
+              <span class="detail-label">Price Range</span>
+              <span class="detail-value price-value">{{ selectedProduct.price_range }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description / Safety Info -->
+        <div class="detail-section">
+          <h4 class="section-heading">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            Safety Information
+          </h4>
+          <p class="description-text">{{ selectedProduct.description }}</p>
+        </div>
+
+        <!-- Ingredients -->
+        <div class="detail-section">
+          <h4 class="section-heading">
+            <ion-icon name="flask-outline"></ion-icon>
+            Ingredients
+          </h4>
+          <div class="ingredient-tags">
+            <span
+              *ngFor="let ing of getIngredientList(selectedProduct.ingredients)"
+              class="ingredient-tag">
+              {{ ing }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Safety Score Explainer -->
+        <div class="detail-section score-explainer">
+          <h4 class="section-heading">
+            <ion-icon name="analytics-outline"></ion-icon>
+            Safety Score Explained
+          </h4>
+          <div class="score-scale">
+            <div class="scale-item"><span class="dot" style="background:#22c55e"></span><span>85–100 · Very Low Risk</span></div>
+            <div class="scale-item"><span class="dot" style="background:#84cc16"></span><span>65–84 · Low to Moderate Risk</span></div>
+            <div class="scale-item"><span class="dot" style="background:#f59e0b"></span><span>50–64 · Moderate Risk</span></div>
+            <div class="scale-item"><span class="dot" style="background:#ef4444"></span><span>0–49 · Higher Risk</span></div>
+          </div>
+          <p class="score-note">Scores are based on ingredient transparency, certifications, and findings from the 2026 University of the Free State study on endocrine-disrupting chemicals (EDCs) in South African menstrual products.</p>
+        </div>
+
+        <div class="bottom-spacer"></div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- ── Safety Guide Modal ──────────────────────────────────────── -->
+  <ion-modal [isOpen]="showSafetyGuide" (didDismiss)="showSafetyGuide = false" class="guide-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-title">🛡️ Safety Guide</ion-title>
+          <ion-buttons slot="start">
+      <span class="user-greeting" *ngIf="currentUser">Hi, {{ currentUser.firstName }} 👋</span>
+    </ion-buttons>
+    <ion-buttons slot="end">
+            <ion-button (click)="showSafetyGuide = false" fill="clear" class="close-btn">✕</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="modal-content guide-content">
+        <div class="guide-section">
+          <h3>What is SheSafe?</h3>
+          <p>SheSafe helps South African users make informed choices about menstrual products by providing safety scores, ingredient information, and research-backed guidance.</p>
+        </div>
+        <div class="guide-section">
+          <h3>⚗️ What are EDCs?</h3>
+          <p>Endocrine-Disrupting Chemicals (EDCs) are substances that interfere with the body's hormonal system. The 2026 University of the Free State (UFS) study found EDCs including bisphenols, phthalates, and parabens in commonly used SA menstrual products.</p>
+        </div>
+        <div class="guide-section">
+          <h3>📊 How Safety Scores Work</h3>
+          <div class="guide-scale">
+            <div class="guide-scale-item vl"><span>85–100</span><strong>Very Low Risk</strong><p>Organic certified, no synthetic chemicals, independently tested.</p></div>
+            <div class="guide-scale-item lo"><span>65–84</span><strong>Low to Moderate Risk</strong><p>Better ingredient practices, limited concerning chemicals detected.</p></div>
+            <div class="guide-scale-item mo"><span>50–64</span><strong>Moderate Risk</strong><p>Some concerning ingredients; conventional materials with limited transparency.</p></div>
+            <div class="guide-scale-item hi"><span>0–49</span><strong>Higher Risk</strong><p>Named in NCC investigation or contains fragrance / known EDC sources.</p></div>
+          </div>
+        </div>
+        <div class="guide-section">
+          <h3>✅ What to Look For</h3>
+          <ul class="guide-list">
+            <li><strong>GOTS Certified</strong> — Global Organic Textile Standard for cotton</li>
+            <li><strong>OEKO-TEX Standard 100</strong> — Tested against 1000+ harmful substances</li>
+            <li><strong>No added fragrance</strong> — Fragrance often contains undisclosed compounds</li>
+            <li><strong>Chlorine-free bleaching</strong> — Avoids dioxin production</li>
+            <li><strong>Organic cotton</strong> — Grown without synthetic pesticides</li>
+          </ul>
+        </div>
+        <div class="guide-section">
+          <h3>⚠️ Red Flags</h3>
+          <ul class="guide-list red">
+            <li>Added fragrance or perfume</li>
+            <li>No ingredient disclosure</li>
+            <li>Conventional chlorine bleaching</li>
+            <li>Named in the 2026 NCC/UFS investigation</li>
+          </ul>
+        </div>
+        <div class="bottom-spacer"></div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>
